@@ -1,0 +1,78 @@
+/* wrapper layout */
+.daily-checkin-page { padding: 20px 24px; max-width: 1200px; margin: 0 auto 48px;
+  box-sizing: border-box; font-family: "Inter", sans-serif; }
+
+/* header (sub-header) */
+.dc-subheader { height: 70px; background: #f2f4f7; padding: 12px 16px; border-radius: 6px;
+  display:flex; align-items:center; }
+.dc-subheader-left { display:flex; gap:12px; align-items:center; }
+.dc-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; }
+.dc-icon img { width:100%; height:100%; object-fit:contain; }
+.dc-title { font-size:18px; font-weight:600; color:#111827; }
+.dc-subtitle { font-size:13px; color:#667085; margin-top:2px; }
+
+/* card */
+.dc-card { margin-top:16px; background:#fff; border:1px solid #e6e6e9; border-radius:8px; padding:18px; }
+
+/* header row */
+.dc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.dc-nav-group { display:flex; gap:12px; align-items:center; }
+.dc-month-label { color:#374151; font-weight:600; font-size:16px; }
+
+/* nav buttons */
+.dc-nav { background:none; border:1px solid #e6e6e9;
+  width:36px; height:36px; border-radius:6px; cursor:pointer; font-size:18px;
+  display:inline-flex; align-items:center; justify-content:center; 
+  transition: background .12s, border-color .12s; }
+.dc-nav:hover { background:#f7f7f8; border-color:#dfe3e6; }
+
+/* weekdays */
+.dc-calendar { padding-top:8px; }
+.dc-weekdays { display:grid; grid-template-columns: repeat(7, 1fr); gap:0; 
+  border-bottom:1px solid #eef2f6; padding-bottom:8px; margin-bottom:8px; }
+.dc-weekday { font-size:13px; color:#6b7280; text-align:left; padding:8px 12px; }
+
+/* grid */
+.dc-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:0; }
+.dc-cell { min-height:88px; border:1px solid transparent; padding:12px; box-sizing:border-box;
+  position:relative; background:transparent; transition: background .12s, border-color .12s;
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; }
+.dc-cell--muted { color:#9ca3af; background:#fafafa; }
+.dc-cell--current { color:#111827; background:transparent; }
+.dc-cell-number { font-size:14px; font-weight:600; color: #111827; }
+.dc-cell-badge { margin-top:8px; }
+
+/* today highlight */
+.dc-cell--today { outline: 2px solid rgba(99,102,241,0.12); border-radius:8px;
+  background: linear-gradient(180deg, rgba(99,102,241,0.03), rgba(99,102,241,0.01)); position:relative; }
+.dc-cell--today .dc-cell-number { color:#4f46e5; }
+.dc-cell--today::after { content:"Today"; position:absolute; right:8px; top:8px; font-size:10px; 
+  background:#eef2ff; color:#4338ca; padding:4px 6px; border-radius:6px; }
+
+.dc-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 16px;
+  transition: background 0.2s ease;
+}
+
+.dc-back-btn:hover {
+  background: #f3f4f6;
+}
+
+
+/* responsive */
+@media (max-width:768px) {
+  .daily-checkin-page { padding:12px; }
+  .dc-cell { min-height:72px; padding:8px; }
+  .dc-weekday { padding:8px 8px; font-size:12px; }
+  .dc-nav { width:32px; height:32px; font-size:16px; }
+}

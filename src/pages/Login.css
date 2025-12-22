@@ -1,0 +1,205 @@
+/* Login.css - Updated for DC UI */
+
+/* -- RESET / BASE -- */
+.dc-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fb;
+  font-family: "Inter", system-ui, sans-serif;
+  padding: 20px;
+}
+
+.dc-auth-content {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* -- CARD -- */
+.dc-auth-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px; /* curvy */
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* -- HEADINGS -- */
+.dc-modal-head {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.dc-auth-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dc-auth-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* -- FORM -- */
+.dc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.dc-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.dc-field input {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dc-field input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+}
+
+.dc-error {
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* -- BUTTONS -- */
+.dc-submit {
+  margin-top: 8px;
+  background-color: #111827; /* Dark almost black */
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dc-submit:hover:not(:disabled) {
+  background-color: #000000;
+}
+
+.dc-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* -- SEPARATOR -- */
+.dc-sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.dc-sep span {
+  flex: 1;
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+.dc-sep p {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* -- GOOGLE BTN -- */
+.dc-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: not-allowed; /* disabled style */
+  opacity: 0.6;
+}
+
+.dc-google-badge {
+  background: #eee;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* -- FOOTER -- */
+.dc-foot {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.dc-link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  margin-left: 4px;
+}
+
+.dc-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* -- MODAL VARIANT -- */
+/* When rendered as modal, we don't need the full page wrapper styling 
+   because the overlay handles position. We just style the content. */
+
+.dc-modal-content {
+  width: 100%;
+  /* No max-width restriction here, let parent modal container decide */
+}
+
+/* Close button (x) */
+.dc-x {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.dc-x:hover {
+  color: #111827;
+}

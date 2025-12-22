@@ -1,0 +1,255 @@
+/* ===============================
+   NAVBAR BASE
+================================ */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
+}
+
+.navbar-container {
+  max-width: 1280px;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ===============================
+   LEFT
+================================ */
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo {
+  height: 32px;
+  object-fit: contain;
+}
+
+/* ===============================
+   CENTER
+================================ */
+.navbar-center {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-link {
+  text-decoration: none;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 0;
+  position: relative;
+}
+
+.navbar-link:hover {
+  color: #111827;
+}
+
+.navbar-link.active {
+  color: #111827;
+}
+
+.navbar-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: 100%;
+  height: 2px;
+  background: #111827;
+  border-radius: 2px;
+}
+
+/* ===============================
+   RIGHT
+================================ */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* ---------- LOGIN / REGISTER ---------- */
+.navbar-login-btn {
+  background: transparent;
+  border: 1px solid #111827;
+  color: #111827;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.navbar-login-btn:hover {
+  background: #f9fafb;
+}
+
+.navbar-register-btn {
+  background: #111827;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.navbar-register-btn:hover {
+  background: #000000;
+}
+
+/* ---------- AUTHED USER ---------- */
+.daily-checkin-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FCD34D;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.daily-checkin-btn:hover {
+  background: #FBBF24;
+}
+
+.daily-checkin-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.navbar-icon {
+  color: #374151;
+  cursor: pointer;
+}
+
+.navbar-icon:hover {
+  color: #111827;
+}
+
+.navbar-streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navbar-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+.navbar-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar-bell {
+  margin-left: 4px;
+}
+
+.navbar-logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.navbar-logout-btn:hover {
+  color: #111827;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 1024px) {
+  .navbar-menu {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-hamburger {
+    display: block;
+  }
+
+  .navbar-menu {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    flex-direction: column;
+    gap: 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: none;
+  }
+
+  .navbar-menu.show {
+    display: flex;
+  }
+
+  .navbar-menu li {
+    width: 100%;
+  }
+
+  .navbar-link {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+  }
+
+  .navbar-link.active::after {
+    display: none;
+  }
+
+  .navbar-right {
+    gap: 10px;
+  }
+
+  .navbar-username {
+    display: none;
+  }
+
+  .daily-checkin-btn span {
+    display: none;
+  }
+}

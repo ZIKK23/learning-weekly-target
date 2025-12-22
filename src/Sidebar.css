@@ -1,0 +1,171 @@
+/* SIDEBAR WRAPPER */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 16px 0;
+    margin-right: 24px;
+    flex-shrink: 0;
+    transition: width 0.2s ease;
+  }
+  
+  /* saat ditutup: jadi bar sempit berisi ikon */
+  .sidebar.collapsed {
+    width: 80px;
+  }
+  
+  /* HEADER ATAS: logo + title + toggle */
+  .sidebar-header {
+    padding: 0 16px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #111827;
+    font-family: "Inter", sans-serif;
+    background-image: url('/art.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  
+  .sidebar-header-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+ /* kotak logo */
+.sidebar-logo-box {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-logo-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  
+  .sidebar-logo-cube {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+  }
+  
+  .sidebar-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  /* tombol chevron */
+  .sidebar-toggle {
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #9ca3af;
+  }
+  
+  .sidebar-toggle:hover {
+    background-color: #f3f4f6;
+    color: #4b5563;
+  }
+  
+  /* SECTION MENU */
+  .sidebar-section {
+    padding: 4px 0;
+  }
+  
+  .sidebar-section.selected {
+    background-color: #eef2ff;
+  }
+  
+  /* ITEM MENU */
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: #111827;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .sidebar-item:hover {
+    background-color: #f3f4ff;
+  }
+  
+  .sidebar-icon {
+    flex-shrink: 0;
+  }
+  
+  .sidebar-item-label {
+    white-space: nowrap;
+  }
+  
+  /* ======================
+     MODE COLLAPSED
+  ====================== */
+  
+  /* sembunyikan title ketika collapsed */
+  .sidebar.collapsed .sidebar-title {
+    display: none;
+  }
+  
+  /* header lebih rapat saat collapse */
+  .sidebar.collapsed .sidebar-header {
+    justify-content: center;
+  }
+  
+  /* item: ikon di tengah, tanpa teks */
+  .sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding: 10px 0;
+  }
+  
+  .sidebar.collapsed .sidebar-item-label {
+    display: none;
+  }
+  
+  /* kalau mau toggle tetap di bawah sisi kiri saat collapsed, bisa diatur begini:
+     (opsional, kalau dirasa perlu) */
+  /*
+  .sidebar.collapsed .sidebar-toggle {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  */
+  
+  /* RESPONSIVE SEDIKIT */
+  @media (max-width: 1024px) {
+    .sidebar {
+      position: fixed;
+      top: 80px; /* below navbar */
+      left: 16px;
+      width: 260px;
+      height: calc(100vh - 96px);
+      margin-right: 0;
+      margin-bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar.collapsed {
+      width: 80px;
+    }
+  }
