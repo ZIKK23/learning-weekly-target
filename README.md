@@ -1,103 +1,249 @@
-# Learning Weekly Target App (Capstone Project)
+# Learning Weekly Target
 
-Aplikasi web untuk membantu siswa mengelola target belajar mingguan, memantau progres submodule (termasuk fitur _streak_), dan menjadwalkan aktivitas belajar harian.
+> **Capstone Project** - A weekly learning target management application with progress tracking and streak gamification system.
 
-## 👥 Anggota Tim
+## 📋 About the Project
 
-Capstone Project ini dikembangkan oleh:
+Learning Weekly Target is a web application designed to help students effectively manage their weekly learning targets. The application provides a detailed progress tracking system, from classes, modules, to submodules, equipped with streak gamification features to increase learning motivation.
 
-| ID              | Nama                       | Role                 |
-| --------------- | -------------------------- | -------------------- |
-| **F156D5Y0256** | Arby Ali Amaludin          | Front-End & Back-End |
-| **F012D5Y0756** | Hilmi Zikri                | Front-End & Back-End |
-| **F284D5X1647** | Randistya Fitria           | Front-End & Back-End |
-| **F290D5X0066** | Afiyah Nabilah Putri       | Front-End & Back-End |
-| **F284D5X0321** | Ayu Aisyah Fatimatu Syahra | Front-End & Back-End |
+**Note**: This is a capstone project developed as part of a learning program.
 
 ---
 
-## 🚀 Fitur Utama
+## ✨ Key Features
 
-Aplikasi ini memiliki berbagai fitur untuk menunjang produktivitas belajar siswa:
+### 🎯 Target Management
 
-1.  **Weekly Targets**: Menentukan target modul yang ingin diselesaikan dalam satu minggu.
-2.  **Progress Tracking**: Memantau perkembangan belajar mulai dari kelas, modul, hingga submodule secara detail.
-3.  **Streak System**: Gamifikasi dengan sistem _streak_ (api 🔥) yang bertambah setiap kali menyelesaikan satu modul penuh.
-4.  **Leaderboard**: Melihat peringkat siswa berdasarkan konsistensi belajar (streak tertinggi).
+- **Weekly Targets**: Set module targets to complete each week
+- **Progress Tracking**: Monitor learning progress in real-time from class level to submodule
+- **Task Completion**: Mark submodules as complete with automatic tracking system
+
+### 🔥 Gamification System
+
+- **Streak System**: Earn streaks (fire 🔥) every time you complete a full module
+- **Leaderboard**: Healthy competition by viewing rankings based on learning consistency
+- **Achievement Tracking**: Track achievements and learning progress
+
+### 📅 Scheduling
+
+- **Schedule Management**: Arrange daily study schedules
+- **Daily Planning**: Plan learning activities for time optimization
+
+### 🔐 Authentication & Security
+
+- **User Authentication**: Secure login/registration system with JWT
+- **Protected Routes**: Controlled access for each user
 
 ---
 
-## 💻 Tech Stack
+## 🛠️ Tech Stack
 
-Teknologi yang digunakan dalam pengembangan aplikasi ini:
+### Frontend
 
-- **Frontend**: React (Vite), Tailwind CSS/Raw CSS
-- **Backend**: Node.js, Express.js
-- **Database**: MySQL (via phpMyAdmin)
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + Custom CSS
+- **Routing**: React Router DOM
+
+### Backend
+
+- **Runtime**: Node.js
+- **Framework**: Express.js
 - **Authentication**: JWT (JSON Web Token)
+- **API**: RESTful API architecture
+
+### Database
+
+- **DBMS**: MySQL
+- **Tool**: phpMyAdmin (for development)
 
 ---
 
-## 📖 Cara Penggunaan
+## 🏗️ Application Architecture
 
-Berikut adalah alur umum penggunaan aplikasi:
-
-1.  **Registrasi/Login**: Masuk menggunakan akun siswa yang sudah terdaftar.
-2.  **Set Target Mingguan**: Pada awal minggu, pilih modul-modul yang ingin dipelajari.
-3.  **Mulai Belajar**: Buka Dashboard, pilih kelas, dan mulai baca materi per submodule.
-4.  **Selesaikan Submodule**: Klik tombol "Next" di akhir materi submodule untuk menandainya selesai.
-5.  **Cek Streak**: Jika semua submodule dalam satu modul selesai, streak harian/mingguanmu akan bertambah!
-6.  **Kelola Jadwal**: Gunakan fitur "Manage Schedule" untuk mengatur kapan kamu akan belajar hari ini.
+```
+learning-weekly-target/
+├── backend/                 # Server-side application
+│   ├── capstone.sql        # Database schema & seed data
+│   ├── server.js           # Express server setup
+│   ├── routes/             # API routes
+│   ├── middleware/         # Auth & validation middleware
+│   └── .env                # Environment variables
+│
+├── src/                    # Frontend application
+│   ├── components/         # Reusable React components
+│   ├── pages/             # Page components
+│   ├── assets/            # Images, icons, etc.
+│   └── App.jsx            # Main app component
+│
+├── public/                # Static assets
+└── index.html             # HTML entry point
+```
 
 ---
 
-## 🛠️ Cara Install & Menjalankan Project
+## 📦 Prerequisites
 
-Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi secara lokal.
+Make sure your system has the following installed:
 
-### 1️⃣ Persiapan Database (phpMyAdmin)
+- **Node.js** (v16 or higher)
+- **npm** or **yarn**
+- **XAMPP** or other MySQL server
+- **Git** (for cloning repository)
 
-1.  Pastikan **XAMPP** (atau database server MySQL lainnya) sudah terinstall dan berjalan (Start module **Apache** dan **MySQL**).
-2.  Buka browser dan akses [http://localhost/phpmyadmin](http://localhost/phpmyadmin).
-3.  Buat database baru dengan nama: **`capstone`**
-4.  Klik tab **Import**.
-5.  Klik **Choose File** dan pilih file SQL yang ada di direktori project:
-    `.../learning-weekly-target1/backend/capstone.sql`
-6.  Klik **Import** (atau **Go** di bagian bawah).
-7.  Pastikan semua tabel (termasuk `submodule_progress`) berhasil dibuat tanpa error.
+---
 
-### 2️⃣ Jalankan Backend (Server)
+## 🚀 Installation & Setup
 
-1.  Buka terminal/cmd dan masuk ke folder `backend`.
-    ```bash
-    cd backend
-    ```
-2.  Install library/dependencies (jika belum pernah):
-    ```bash
-    npm install
-    ```
-3.  Konfigurasi Environment (Opsional):
-    - Pastikan file `.env` di folder backend sudah sesuai dengan setting database kamu (default biasanya user: `root`, pass: kosong).
-4.  Jalankan server:
-    ```bash
-    npm start
-    ```
-    _Output sukses:_ `Server running on http://localhost:3000`
+### 1️⃣ Clone Repository
 
-### 3️⃣ Jalankan Frontend (Client)
+```bash
+git clone <repository-url>
+cd learning-weekly-target
+```
 
-1.  Buka terminal **baru** (jangan matikan terminal backend).
-2.  Masuk ke direktori root project.
-    ```bash
-    cd ..
-    # atau jika dari awal: cd learning-weekly-target1
-    ```
-3.  Install dependencies (jika belum pernah):
-    ```bash
-    npm install
-    ```
-4.  Jalankan aplikasi frontend:
-    ```bash
-    npm run dev
-    ```
-5.  Buka link yang muncul di terminal (biasanya [http://localhost:5173](http://localhost:5173)) di browser kamu.
+### 2️⃣ Setup Database
+
+1. Run **XAMPP** and activate **Apache** and **MySQL** modules
+2. Open browser, access [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
+3. Create a new database named: **`capstone`**
+4. Import SQL file:
+   - Click **Import** tab
+   - Select file `backend/capstone.sql`
+   - Click **Go** or **Import**
+5. Verify that all tables have been created successfully
+
+### 3️⃣ Setup Backend
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+# Edit .env file according to your database configuration
+# Default: user=root, password=empty
+
+# Run server
+npm start
+```
+
+Server will run at **http://localhost:3000**
+
+### 4️⃣ Setup Frontend
+
+Open a new terminal (don't close the backend terminal):
+
+```bash
+# Return to root directory
+cd ..
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+```
+
+Application will run at **http://localhost:5173**
+
+---
+
+## 📖 Usage Guide
+
+### Getting Started
+
+1. **Registration**: Create a new account by filling out the registration form
+2. **Login**: Log in using your created credentials
+
+### Setting Learning Targets
+
+1. **Set Weekly Target**:
+   - Open the Weekly Targets page
+   - Select modules you want to complete this week
+   - Save your targets
+
+### Learning Process
+
+1. **Access Dashboard**: View an overview of your learning progress
+2. **Select Class**: Choose the class you want to study
+3. **Start Learning**:
+   - Open modules and submodules
+   - Read the provided materials
+   - Click "Next" button after finishing reading
+
+### Progress Tracking
+
+1. **Check Streak**:
+   - Streak will increase automatically after completing a full module
+   - View your streak on the dashboard
+2. **Leaderboard**:
+   - Compare progress with other users
+   - Motivation to study consistently
+
+### Schedule Management
+
+1. **Manage Schedule**:
+   - Set daily study schedules
+   - Plan optimal learning activities
+
+---
+
+## 🔧 Environment Variables
+
+Create a `.env` file in the `backend/` directory with the following configuration:
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=capstone
+JWT_SECRET=your_jwt_secret_key
+PORT=3000
+```
+
+---
+
+## 🎯 Key Features Explained
+
+### Streak System
+
+The streak system is designed to encourage learning consistency:
+
+- ✅ Complete all submodules in one module → Streak +1
+- 🔥 Maintain daily/weekly streaks for higher ranking
+- 🏆 Appear on leaderboard based on total streaks
+
+### Progress Tracking
+
+Progress tracking hierarchy:
+
+```
+Class → Module → Submodule
+```
+
+- Each submodule can be marked as complete
+- Progress is calculated in real-time
+- Visual indicator for progress at each level
+
+---
+
+## 🤝 Contributing
+
+This project is developed as a capstone project. For questions or suggestions, please contact through this repository.
+
+**Contact**: [zikrihilmi15@gmail.com](mailto:zikrihilmi15@gmail.com)
+
+---
+
+## 📄 License
+
+This project is created for learning purposes and capstone project evaluation.
+
+---
+
+## 🙏 Acknowledgments
+
+Thank you to everyone who has supported the development of this project, including mentors, reviewers, and resources used in the learning process.
