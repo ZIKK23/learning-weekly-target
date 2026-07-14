@@ -4,7 +4,7 @@ Guide for AI coding agents (and humans) working in this repo. Read this before m
 
 ## What this project is
 
-A capstone web app for tracking weekly learning targets: users pick modules for the week, work through submodules, and build streaks. React/Vite frontend, Express/MySQL backend, two separate `npm` projects in one repo.
+A capstone web app for tracking weekly learning targets: users pick modules for the week, work through submodules, and build streaks. React/Vite frontend, Express/Postgres (Supabase) backend, two separate `npm` projects in one repo.
 
 ## Repo layout
 
@@ -24,21 +24,23 @@ backend/                  Express API (own package.json, own node_modules)
     middlewares/            auth.js (JWT check), requireTarget.js
     helpers/                token.js (JWT sign), week.js (week-range/day math), email builders
     cron/                   node-cron jobs (weeklyFeedback, reminder)
-    config/                 db.js (mysql2 pool), mailer.js (nodemailer transport)
-  capstone.sql             full schema + seed/dump data (see Database section)
+    config/                 db.js (pg pool + mysql2-compatible query adapter), mailer.js (nodemailer transport)
+  capstone.sql             legacy MySQL dump, kept for history — no longer the live schema
+  supabase_schema.sql      current Postgres schema + seed data (see Database section)
 ```
 
 ## Tech stack
 
 - Frontend: React 19, Vite (rolldown-vite), Tailwind CSS, React Router DOM 7, plain `fetch` (no axios/react-query).
-- Backend: Node.js, Express 5, `mysql2/promise` (raw SQL, no ORM), `jsonwebtoken`, `nodemailer`, `node-cron`.
-- Database: MySQL 8, managed via phpMyAdmin locally.
+- Backend: Node.js, Express 5, `pg` (raw SQL via a thin mysql2-compatible adapter in `db.js`, no ORM), `jsonwebtoken`, `nodemailer`, `node-cron`.
+- Database: Postgres via Supabase (Session pooler connection), managed via the Supabase SQL editor/dashboard.
 - No test framework is configured on either side (`backend` test script is a stub, no frontend test runner).
 
 ## Backend conventions
 
 - **Routes are thin.** A route file only wires `router.<method>(path, [middleware], controllerFn)`. All logic lives in the controller.
-- **Controllers use raw parameterized SQL** via the `db` pool (`backend/src/config/db.js`), e.g. `db.query('SELECT ... WHERE id = ?', [id])`. Always parameterize — never string-concatenate user input into SQL.
+- **Controllers use raw parameterized SQL** via the `db` pool (`backend/src/config/db.js`), e.g. `db.query('SELECT ... WHERE id = ?', [id])`. Always parameterize — never string-concatenate user input into SQL. `db.js` wraps `pg` behind the same mysql2-shaped API (`?` placeholders, `[rows]` / `[{ insertId }]` return shape) so controller code reads the same as before the Postgres migration.
+- **Write Postgres SQL, not MySQL SQL.** No `CURDATE()`/`DAYNAME()`/`DATE_FORMAT()`/`IFNULL()`/`ON DUPLICATE KEY UPDATE`/`INSERT IGNORE` — use `CURRENT_DATE`, `TO_CHAR(x, 'FMDay')`, `TO_CHAR(x, 'YYYY-MM-DD')`, `COALESCE()`, `ON CONFLICT (...) DO UPDATE/DO NOTHING`. For `WHERE col IN (?)` with an array param, use `WHERE col = ANY(?)` instead — the adapter's `?`→`$n` substitution doesn't auto-expand arrays like mysql2 did.
 - **Multi-statement writes use an explicit transaction**: `const conn = await db.getConnection(); ... conn.beginTransaction() / commit() / rollback() / release()` in a try/catch/finally (see `targetsController.js:createWeeklyTarget`). Follow this pattern for any new multi-table write.
 - **Auth**: `requireAuth` middleware (`src/middlewares/auth.js`) reads `Authorization: Bearer <jwt>`, verifies with `JWT_SECRET`, sets `req.user` (`{ id, email }` from the token payload). Apply it per-route, not globally.
 - **Login has no password.** `authController.login` only checks the email exists in `users` and mints a JWT — there is no password field/hash anywhere in the schema. This is a known, deliberate simplification for a capstone project, not a bug to silently "fix" by inventing a password flow — flag it to the user if asked to harden auth.
@@ -52,12 +54,13 @@ backend/                  Express API (own package.json, own node_modules)
 - Styling mixes Tailwind utility classes with a few hand-written `.css` files per page (e.g. `Login.css`, `Navbar.css`) — check for an existing sibling `.css` file before reaching for inline styles.
 - ESLint (`eslint.config.js`) is flat-config, React Hooks + React Refresh rules on `**/*.{js,jsx}`. Run `npm run lint` from repo root after frontend changes.
 
-## Database (`backend/capstone.sql`)
+## Database (`backend/supabase_schema.sql`)
 
-- This file is a phpMyAdmin dump: `CREATE TABLE` + `INSERT` seed data + indexes + FK constraints, wrapped in one transaction, `COMMIT`ed near the end.
-- `submodule_progress` was hand-appended **after** the `COMMIT` line — it is not part of the machine-generated dump. If you re-export from phpMyAdmin, this table's definition will be lost unless you re-add it after re-export. Prefer editing schema via migrations/manual `ALTER`/`CREATE` statements kept separate from a fresh dump, not by hand-editing inside the dump body.
-- FK delete behavior is inconsistent across tables (some `ON DELETE CASCADE`, some default `RESTRICT`, `fk_activities_module` cascades module deletion into a user's `activities` history). Check existing FK behavior before adding a new table/relation, and don't assume cascade semantics — verify per table.
-- **Do not commit real user data.** The current dump contains ~50 real emails and display names from actual users (see `users` table). Treat this as sensitive: don't add more real PII to it, and prefer a small synthetic seed set for any new sample data you add. If asked to "reset" or "reseed" the database, use synthetic data unless explicitly told otherwise.
+- Live database is Postgres on Supabase. `supabase_schema.sql` is the source of truth: `CREATE TABLE` (no FKs yet) → seed `INSERT`s → FK `ALTER TABLE ADD CONSTRAINT`s (added after data load so insert order doesn't need to satisfy them) → `setval()` calls to bump each `SERIAL` sequence past the explicit seed ids.
+- MySQL `ENUM` columns became `TEXT` + `CHECK (col IN (...))`. MySQL's `ON UPDATE CURRENT_TIMESTAMP` has no native Postgres equivalent — it's replaced by a shared `set_updated_at()` trigger function attached to every table with an `updated_at` column (see top of the file). If you add a table with `updated_at`, add a matching `CREATE TRIGGER ... EXECUTE FUNCTION set_updated_at()`.
+- `backend/capstone.sql` (the old MySQL/phpMyAdmin dump) is kept only for history — don't edit it, don't treat it as current schema.
+- FK delete behavior is inconsistent across tables (some `ON DELETE CASCADE`, some default `RESTRICT`/no action, `fk_activities_module` cascades module deletion into a user's `activities` history). Check existing FK behavior before adding a new table/relation, and don't assume cascade semantics — verify per table.
+- **Do not commit real user data.** The seed data contains ~50 real emails and display names from actual users (see `users` table). Treat this as sensitive: don't add more real PII to it, and prefer a small synthetic seed set for any new sample data you add. If asked to "reset" or "reseed" the database, use synthetic data unless explicitly told otherwise.
 
 ## Secrets
 

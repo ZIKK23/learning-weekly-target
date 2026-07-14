@@ -36,8 +36,8 @@ async function sendReminderToUser(user) {
 
   const [todayRows] = await db.query(
     `SELECT 1 FROM target_days
-     WHERE target_id = ? 
-     AND day_of_week = DAYNAME(CURDATE())`,
+     WHERE target_id = ?
+     AND day_of_week = TO_CHAR(CURRENT_DATE, 'FMDay')`,
     [target_id]
   );
 
@@ -58,7 +58,7 @@ async function sendReminderToUser(user) {
   if (!isTargetDay) {
     const [[nextDay]] = await db.query(
       `SELECT date FROM target_days
-       WHERE target_id = ? AND date > CURDATE()
+       WHERE target_id = ? AND date > CURRENT_DATE
        ORDER BY date ASC LIMIT 1`,
       [target_id]
     );

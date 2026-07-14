@@ -9,8 +9,8 @@ exports.getWeeklyTodo = async (req, res) => {
       `SELECT id, week_start, week_end
        FROM targets
        WHERE user_id = ?
-         AND week_start <= CURDATE()
-         AND week_end >= CURDATE()
+         AND week_start <= CURRENT_DATE
+         AND week_end >= CURRENT_DATE
        LIMIT 1`,
       [user_id]
     );

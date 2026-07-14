@@ -11,8 +11,8 @@ exports.sendWeeklyFeedback = async () => {
               t.week_start, t.week_end
        FROM users u
        JOIN targets t ON t.user_id = u.id
-       WHERE t.week_start <= CURDATE()
-         AND t.week_end >= CURDATE()`
+       WHERE t.week_start <= CURRENT_DATE
+         AND t.week_end >= CURRENT_DATE`
     );
 
     if (users.length === 0) {

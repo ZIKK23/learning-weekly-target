@@ -105,7 +105,7 @@ exports.getAvailableModules = async (req, res) => {
         m.description
       FROM modules m
       JOIN classes c ON c.id = m.class_id
-      WHERE m.class_id IN (?)
+      WHERE m.class_id = ANY(?)
         AND m.id NOT IN (
           SELECT DISTINCT tm.module_id
           FROM target_modules tm

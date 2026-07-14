@@ -9,11 +9,11 @@ router.get("/streak", requireAuth, async (req, res) => {
 
     // Get current week's streak data - Return dates as STRINGS to avoid timezone issues
     const [rows] = await db.query(
-      `SELECT 
+      `SELECT
         id, user_id, streak, last_completion_date,
-        DATE_FORMAT(week_start, '%Y-%m-%d') as week_start,
-        DATE_FORMAT(week_end, '%Y-%m-%d') as week_end 
-       FROM weekly_streaks 
+        TO_CHAR(week_start, 'YYYY-MM-DD') as week_start,
+        TO_CHAR(week_end, 'YYYY-MM-DD') as week_end
+       FROM weekly_streaks
        WHERE user_id = ?
        ORDER BY week_start DESC LIMIT 1`,
       [user_id]
@@ -26,9 +26,9 @@ router.get("/streak", requireAuth, async (req, res) => {
     
     if (streakData) {
       const [checkins] = await db.query(
-        `SELECT DATE_FORMAT(checkin_date, '%Y-%m-%d') as checkin_date 
-         FROM daily_checkins 
-         WHERE user_id = ? 
+        `SELECT TO_CHAR(checkin_date, 'YYYY-MM-DD') as checkin_date
+         FROM daily_checkins
+         WHERE user_id = ?
          AND checkin_date BETWEEN ? AND ?
          ORDER BY checkin_date`,
         [user_id, streakData.week_start, streakData.week_end]

@@ -92,8 +92,8 @@ exports.finishActivity = async (req, res) => {
     }
 
     const [dayRows] = await db.query(
-      `SELECT 1 FROM target_days 
-       WHERE target_id = ? AND day_of_week = DAYNAME(CURDATE())`,
+      `SELECT 1 FROM target_days
+       WHERE target_id = ? AND day_of_week = TO_CHAR(CURRENT_DATE, 'FMDay')`,
       [target_id]
     );
 

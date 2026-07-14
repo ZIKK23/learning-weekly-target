@@ -18,9 +18,9 @@ router.get('/weekly-learning-time', requireAuth, async (req, res) => {
     // We need to know WHICH modules are selected for the current week 
     const [targetRows] = await db.query(
       `SELECT id FROM targets 
-       WHERE user_id = ? 
-         AND week_start <= CURDATE() 
-         AND week_end >= CURDATE()
+       WHERE user_id = ?
+         AND week_start <= CURRENT_DATE
+         AND week_end >= CURRENT_DATE
        LIMIT 1`,
       [user_id]
     );
@@ -59,8 +59,8 @@ router.get('/weekly-learning-time', requireAuth, async (req, res) => {
     // MODIFY: Only count activities for modules that are in the CURRENT TARGET
     
     let query = `
-      SELECT 
-        DATE_FORMAT(a.date_completed, '%Y-%m-%d') as completion_date,
+      SELECT
+        TO_CHAR(a.date_completed, 'YYYY-MM-DD') as completion_date,
         SUM(a.actual_minutes) as total_minutes
       FROM activities a
     `;
@@ -85,7 +85,7 @@ router.get('/weekly-learning-time', requireAuth, async (req, res) => {
        `;
     }
 
-    query += ` GROUP BY DATE_FORMAT(a.date_completed, '%Y-%m-%d')`;
+    query += ` GROUP BY TO_CHAR(a.date_completed, 'YYYY-MM-DD')`;
 
     const queryParams = target_id 
       ? [user_id, target_id, weekStart, weekEnd + ' 23:59:59']

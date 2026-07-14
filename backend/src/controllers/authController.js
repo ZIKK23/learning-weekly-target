@@ -25,8 +25,8 @@ exports.login = async (req, res) => {
     const [t] = await db.query(
       `SELECT id FROM targets
        WHERE user_id = ?
-       AND week_start <= CURDATE()
-       AND week_end >= CURDATE()`,
+       AND week_start <= CURRENT_DATE
+       AND week_end >= CURRENT_DATE`,
       [user.id]
     );
 

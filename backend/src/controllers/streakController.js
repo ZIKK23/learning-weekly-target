@@ -30,11 +30,11 @@ exports.updateWeeklyStreak = async (user_id) => {
     const row = rows[0];
 
     const [[yesterday]] = await db.query(
-      `SELECT CURDATE() = DATE_ADD(?, INTERVAL 1 DAY) AS is_yesterday`,
+      `SELECT CURRENT_DATE = (?::date + INTERVAL '1 day') AS is_yesterday`,
       [row.last_completion_date]
     );
 
-    if (yesterday && yesterday.is_yesterday === 1) {
+    if (yesterday && yesterday.is_yesterday) {
       streak = row.streak + 1;
       console.log(`📈 Continuing streak: ${row.streak} -> ${streak}`);
     } else {

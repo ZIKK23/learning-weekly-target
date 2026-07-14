@@ -15,9 +15,9 @@ exports.markSubmoduleComplete = async (req, res) => {
     await db.query(
       `INSERT INTO submodule_progress (user_id, submodule_id, status, completed_at)
        VALUES (?, ?, 'completed', NOW())
-       ON DUPLICATE KEY UPDATE 
+       ON CONFLICT (user_id, submodule_id) DO UPDATE SET
          status = 'completed',
-         completed_at = IFNULL(completed_at, NOW()),
+         completed_at = COALESCE(submodule_progress.completed_at, NOW()),
          updated_at = NOW()`,
       [user_id, submoduleId]
     );
@@ -45,10 +45,10 @@ exports.markSubmoduleComplete = async (req, res) => {
 
     // Find current active weekly target
     const [targets] = await db.query(
-      `SELECT id FROM targets 
-       WHERE user_id = ? 
-         AND week_start <= CURDATE() 
-         AND week_end >= CURDATE() 
+      `SELECT id FROM targets
+       WHERE user_id = ?
+         AND week_start <= CURRENT_DATE
+         AND week_end >= CURRENT_DATE
        ORDER BY id DESC LIMIT 1`,
       [user_id]
     );
@@ -58,7 +58,7 @@ exports.markSubmoduleComplete = async (req, res) => {
     // Insert proportional time for THIS submodule completion
     await db.query(
       `INSERT INTO activities (user_id, module_id, target_id, date_started, date_completed, actual_minutes, status, created_at)
-       VALUES (?, ?, ?, DATE_SUB(NOW(), INTERVAL ? MINUTE), NOW(), ?, 'completed', NOW())`,
+       VALUES (?, ?, ?, NOW() - (INTERVAL '1 minute' * ?), NOW(), ?, 'completed', NOW())`,
       [user_id, moduleId, targetId, proportionalTime, proportionalTime]
     );
     console.log(`⏱️ Recorded ${proportionalTime} mins for completing submodule ${submoduleId} of module ${moduleId}`);
@@ -84,8 +84,9 @@ exports.markSubmoduleComplete = async (req, res) => {
 
       // Create daily_checkin for today (ignore if already exists)
       const [checkinResult] = await db.query(
-        `INSERT IGNORE INTO daily_checkins (user_id, checkin_date, created_at)
-         VALUES (?, ?, NOW())`,
+        `INSERT INTO daily_checkins (user_id, checkin_date, created_at)
+         VALUES (?, ?, NOW())
+         ON CONFLICT (user_id, checkin_date) DO NOTHING`,
         [user_id, today]
       );
 
@@ -96,8 +97,8 @@ exports.markSubmoduleComplete = async (req, res) => {
       const [targetRows] = await db.query(
         `SELECT t.id FROM targets t
          WHERE t.user_id = ?
-           AND t.week_start <= CURDATE()
-           AND t.week_end >= CURDATE()
+           AND t.week_start <= CURRENT_DATE
+           AND t.week_end >= CURRENT_DATE
          LIMIT 1`,
         [user_id]
       );
