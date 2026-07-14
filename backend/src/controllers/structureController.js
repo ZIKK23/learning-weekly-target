@@ -74,29 +74,14 @@ exports.addStructure = async (req, res) => {
   }
 };
 
-// Get available modules (all incomplete modules for classes user is enrolled in)
+// Get available modules (all modules across all classes that user hasn't completed)
 exports.getAvailableModules = async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    // 1. Get IDs of classes the user is enrolled in (has at least one target)
-    const [enrolledClasses] = await db.query(`
-      SELECT DISTINCT m.class_id
-      FROM targets t
-      JOIN target_modules tm ON tm.target_id = t.id
-      JOIN modules m ON m.id = tm.module_id
-      WHERE t.user_id = ?
-    `, [user_id]);
-
-    if (enrolledClasses.length === 0) {
-      return res.json({ status: 'ok', data: [] });
-    }
-
-    const classIds = enrolledClasses.map(c => c.class_id);
-
-    // 2. Get ALL modules for these classes that are NOT completed
+    // Get ALL modules across ALL classes that are NOT completed by this user
     const [availableModules] = await db.query(`
-      SELECT 
+      SELECT
         c.id as class_id,
         c.name as class_name,
         m.id as module_id,
@@ -105,15 +90,18 @@ exports.getAvailableModules = async (req, res) => {
         m.description
       FROM modules m
       JOIN classes c ON c.id = m.class_id
-      WHERE m.class_id = ANY(?)
-        AND m.id NOT IN (
-          SELECT DISTINCT tm.module_id
-          FROM target_modules tm
-          JOIN targets t ON t.id = tm.target_id
-          WHERE t.user_id = ? AND tm.status = 'completed'
+      WHERE m.id NOT IN (
+          -- modules where the user has completed every submodule (derived from
+          -- submodule_progress, not a separately-written target_modules.status)
+          SELECT s.module_id
+          FROM submodules s
+          JOIN submodule_progress sp ON sp.submodule_id = s.id AND sp.user_id = ?
+          WHERE sp.status = 'completed'
+          GROUP BY s.module_id
+          HAVING COUNT(*) = (SELECT COUNT(*) FROM submodules s2 WHERE s2.module_id = s.module_id)
         )
       ORDER BY c.id, m.id
-    `, [classIds, user_id]);
+    `, [user_id]);
 
     // Group by class
     const groupedData = {};

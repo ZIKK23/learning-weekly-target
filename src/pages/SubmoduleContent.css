@@ -51,6 +51,7 @@
 
 .submodule-container {
   display: flex;
+  align-items: flex-start;
   max-width: 1400px;
   margin: 0 auto;
   gap: 32px;
@@ -140,9 +141,16 @@
 }
 
 /* Sidebar */
+/* Sticky + scroll sendiri, biar daftar modul yang panjang gak ikut manjangin
+   tinggi halaman utama -- halaman cuma scroll kalau konten materi-nya sendiri
+   yang panjang, bukan gara-gara sidebar. */
 .progress-sidebar {
   width: 340px;
   flex-shrink: 0;
+  position: sticky;
+  top: 96px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
 }
 
 .progress-header {

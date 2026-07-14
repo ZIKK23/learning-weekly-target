@@ -32,19 +32,34 @@ function SubmoduleContent() {
     fetchSubmoduleContent();
   }, [moduleId, submoduleId]);
 
-  // Track scroll progress
+  // Track scroll progress berdasarkan tinggi box konten materi doang (contentRef),
+  // bukan seluruh halaman -- sidebar progress di bawahnya (layout stacked di layar sempit)
+  // gak boleh ikut mempengaruhi, kalau konten udah kelihatan semua ya langsung 100%.
   useEffect(() => {
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-      const windowHeight = scrollHeight - clientHeight;
-      const scrollPercent = windowHeight > 0 ? (scrollTop / windowHeight) * 100 : 0;
-      setScrollProgress(scrollPercent);
+      const el = contentRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+
+      if (scrollable <= 0) {
+        setScrollProgress(100);
+        return;
+      }
+
+      const scrolledPast = Math.min(Math.max(-rect.top, 0), scrollable);
+      setScrollProgress((scrolledPast / scrollable) * 100);
     };
 
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [data]);
 
   const fetchSubmoduleContent = async () => {
     try {
@@ -111,6 +126,7 @@ function SubmoduleContent() {
         }
       } catch (error) {
         console.error('Error marking submodule complete:', error);
+        showAlert(error.message || 'Gagal mencatat progress. Pastikan modul ini sudah dipilih di jadwal kamu.', 'error');
       } finally {
         setIsCompleting(false);
       }

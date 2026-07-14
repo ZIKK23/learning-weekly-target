@@ -35,25 +35,29 @@ exports.getUserProgress = async (req, res) => {
         ORDER BY m.id
       `, [cls.class_id]);
 
-      // Get latest status for each module from user's history
-      const modules = [];
-      for (const module of allModules) {
-        const [statusRows] = await db.query(`
-          SELECT tm.status
-          FROM target_modules tm
-          JOIN targets t ON t.id = tm.target_id
-          WHERE t.user_id = ? AND tm.module_id = ?
-          ORDER BY t.week_end DESC, tm.id DESC
-          LIMIT 1
-        `, [user_id, module.module_id]);
-
-        modules.push({
-          module_id: module.module_id,
-          module_name: module.module_name,
-          est_minutes: module.est_minutes,
-          status: (statusRows.length > 0 && statusRows[0].status) || 'not_started'
-        });
+      // Module completion derived from submodule_progress (COUNT completed = total),
+      // not a separately-written target_modules.status column.
+      const moduleIds = allModules.map(m => m.module_id);
+      const [completionRows] = await db.query(`
+        SELECT s.module_id,
+               COUNT(*) as total,
+               COUNT(*) FILTER (WHERE sp.status = 'completed') as done
+        FROM submodules s
+        LEFT JOIN submodule_progress sp ON sp.submodule_id = s.id AND sp.user_id = ?
+        WHERE s.module_id = ANY(?)
+        GROUP BY s.module_id
+      `, [user_id, moduleIds]);
+      const completionMap = {};
+      for (const row of completionRows) {
+        completionMap[row.module_id] = row.total > 0 && row.done === row.total;
       }
+
+      const modules = allModules.map(module => ({
+        module_id: module.module_id,
+        module_name: module.module_name,
+        est_minutes: module.est_minutes,
+        status: completionMap[module.module_id] ? 'completed' : 'not_started'
+      }));
 
       // Calculate progress
       const completedCount = modules.filter(m => m.status === 'completed').length;

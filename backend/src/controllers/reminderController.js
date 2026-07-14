@@ -37,19 +37,40 @@ async function sendReminderToUser(user) {
   const [todayRows] = await db.query(
     `SELECT 1 FROM target_days
      WHERE target_id = ?
-     AND day_of_week = TO_CHAR(CURRENT_DATE, 'FMDay')`,
+     AND date = CURRENT_DATE`,
     [target_id]
   );
 
   const isTargetDay = todayRows.length > 0;
 
-  const [modules] = await db.query(
-    `SELECT m.name, tm.status
+  const [targetModules] = await db.query(
+    `SELECT m.id, m.name
      FROM target_modules tm
      JOIN modules m ON m.id = tm.module_id
      WHERE tm.target_id = ?`,
     [target_id]
   );
+
+  // Module completion derived from submodule_progress, not a stored status column
+  const moduleIds = targetModules.map(m => m.id);
+  const [completionRows] = await db.query(
+    `SELECT s.module_id,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE sp.status = 'completed') as done
+     FROM submodules s
+     LEFT JOIN submodule_progress sp ON sp.submodule_id = s.id AND sp.user_id = ?
+     WHERE s.module_id = ANY(?)
+     GROUP BY s.module_id`,
+    [user.id, moduleIds]
+  );
+  const completionMap = {};
+  for (const row of completionRows) {
+    completionMap[row.module_id] = row.total > 0 && row.done === row.total;
+  }
+  const modules = targetModules.map(m => ({
+    name: m.name,
+    status: completionMap[m.id] ? 'completed' : 'not_started'
+  }));
 
   const unfinished = modules.filter(m => m.status !== "completed");
 

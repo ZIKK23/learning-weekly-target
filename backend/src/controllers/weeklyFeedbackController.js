@@ -22,17 +22,39 @@ exports.sendWeeklyFeedback = async () => {
     for (const user of users) {
       console.log(`Sending weekly feedback to ${user.email}...`);
 
-      const [modules] = await db.query(
-        `SELECT m.name, m.est_minutes, tm.status
+      const [targetModules] = await db.query(
+        `SELECT m.id, m.name, m.est_minutes
          FROM target_modules tm
          JOIN modules m ON m.id = tm.module_id
          WHERE tm.target_id = ?`,
         [user.target_id]
       );
 
+      // Module completion derived from submodule_progress, not a stored status column
+      const moduleIds = targetModules.map(m => m.id);
+      const [completionRows] = await db.query(
+        `SELECT s.module_id,
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE sp.status = 'completed') as done
+         FROM submodules s
+         LEFT JOIN submodule_progress sp ON sp.submodule_id = s.id AND sp.user_id = ?
+         WHERE s.module_id = ANY(?)
+         GROUP BY s.module_id`,
+        [user.id, moduleIds]
+      );
+      const completionMap = {};
+      for (const row of completionRows) {
+        completionMap[row.module_id] = row.total > 0 && row.done === row.total;
+      }
+      const modules = targetModules.map(m => ({
+        name: m.name,
+        est_minutes: m.est_minutes,
+        status: completionMap[m.id] ? 'completed' : 'not_started'
+      }));
+
       const [[minutes]] = await db.query(
         `SELECT SUM(actual_minutes) AS total_minutes
-         FROM activities
+         FROM submodule_time_log
          WHERE user_id = ? AND target_id = ?`,
         [user.id, user.target_id]
       );

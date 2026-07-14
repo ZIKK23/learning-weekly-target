@@ -120,12 +120,24 @@ function ManageSchedule({ isOpen, onClose }) {
     }
   };
 
+  // Cuma tampilkan modul yang udah di-enroll (lewat halaman Class), bukan seluruh katalog
   const fetchModules = async () => {
     try {
       setModulesLoading(true);
       const response = await getAvailableModules();
       if (response.status === 'ok') {
-        setAvailableClasses(response.data);
+        const enrolledIds = Object.keys(selectedModules)
+          .filter((id) => selectedModules[id])
+          .map(Number);
+
+        const enrolledOnly = (response.data || [])
+          .map((cls) => ({
+            ...cls,
+            modules: cls.modules.filter((m) => enrolledIds.includes(m.module_id)),
+          }))
+          .filter((cls) => cls.modules.length > 0);
+
+        setAvailableClasses(enrolledOnly);
       }
     } catch (error) {
       console.error('Error fetching modules:', error);
@@ -394,7 +406,7 @@ function ManageSchedule({ isOpen, onClose }) {
                 </div>
               ) : availableClasses.length === 0 ? (
                 <div style={{ padding: "20px", textAlign: "center", color: "#6b7280" }}>
-                  No modules available
+                  Belum ada modul yang di-enroll. Enroll dulu lewat halaman Class.
                 </div>
               ) : (
                 availableClasses.map((classData, classIdx) => (

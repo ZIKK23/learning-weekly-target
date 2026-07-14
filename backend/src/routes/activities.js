@@ -62,7 +62,7 @@ router.get('/weekly-learning-time', requireAuth, async (req, res) => {
       SELECT
         TO_CHAR(a.date_completed, 'YYYY-MM-DD') as completion_date,
         SUM(a.actual_minutes) as total_minutes
-      FROM activities a
+      FROM submodule_time_log a
     `;
 
     // Join with target_modules if a target exists

@@ -7,6 +7,7 @@ import Login from "./pages/Login.jsx";
 import DailyCheckin from "./pages/DailyCheckin.jsx";
 import Profile from "./pages/Profile.jsx";
 import SubmoduleContent from "./pages/SubmoduleContent.jsx";
+import ChooseModule from "./pages/ChooseModule.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { isAuthenticated } from "./api.js";
 
@@ -41,13 +42,22 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           }
         />
         
-        <Route 
+        <Route
           path="/module/:moduleId/submodule/:submoduleId"
           element={
             <ProtectedRoute>
               <SubmoduleContent />
             </ProtectedRoute>
-          } 
+          }
+        />
+
+        <Route
+          path="/choose-module"
+          element={
+            <ProtectedRoute>
+              <ChooseModule />
+            </ProtectedRoute>
+          }
         />
 
         {/* Default to Dashboard (Guest or Authed) */}

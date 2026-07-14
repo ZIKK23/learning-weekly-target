@@ -12,7 +12,7 @@ exports.startActivity = async (req, res) => {
     }
 
     const [active] = await db.query(
-      `SELECT id FROM activities WHERE user_id = ? AND target_id = ? AND status = 'in_progress'`,
+      `SELECT id FROM submodule_time_log WHERE user_id = ? AND target_id = ? AND status = 'in_progress'`,
       [user_id, target_id]
     );
 
@@ -24,7 +24,7 @@ exports.startActivity = async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO activities (user_id, module_id, target_id, date_started, status)
+      `INSERT INTO submodule_time_log (user_id, module_id, target_id, date_started, status)
        VALUES (?, ?, ?, NOW(), 'in_progress')`,
       [user_id, module_id, target_id]
     );
@@ -47,8 +47,8 @@ exports.finishActivity = async (req, res) => {
     const { activity_id } = req.body;
 
     const [rows] = await db.query(
-      `SELECT date_started, module_id, target_id 
-       FROM activities
+      `SELECT date_started, module_id, target_id
+       FROM submodule_time_log
        WHERE id = ? AND user_id = ?`,
       [activity_id, user_id]
     );
@@ -64,18 +64,21 @@ exports.finishActivity = async (req, res) => {
     const diff = Math.round((end - start) / 1000 / 60);
 
     await db.query(
-      `UPDATE activities 
+      `UPDATE submodule_time_log
        SET date_completed = NOW(), actual_minutes = ?, status = 'completed'
        WHERE id = ?`,
       [diff, activity_id]
     );
 
-    const [[modCheck]] = await db.query(
-      `SELECT status FROM target_modules WHERE target_id = ? AND module_id = ?`,
+    // Module completion is derived from submodule_progress (see submoduleProgressController),
+    // not tracked here -- this endpoint has no submodule-level context to derive it from.
+    // Just confirm the module is actually part of the user's target (enrollment guard).
+    const [[enrolled]] = await db.query(
+      `SELECT 1 FROM target_modules WHERE target_id = ? AND module_id = ?`,
       [target_id, module_id]
     );
 
-    if (!modCheck) {
+    if (!enrolled) {
       return res.json({
         status: "ok",
         actual_minutes: diff,
@@ -83,42 +86,9 @@ exports.finishActivity = async (req, res) => {
       });
     }
 
-    if (modCheck.status === "completed") {
-      return res.json({
-        status: "ok",
-        actual_minutes: diff,
-        target_status: "already completed"
-      });
-    }
-
-    const [dayRows] = await db.query(
-      `SELECT 1 FROM target_days
-       WHERE target_id = ? AND day_of_week = TO_CHAR(CURRENT_DATE, 'FMDay')`,
-      [target_id]
-    );
-
-    if (dayRows.length === 0) {
-      return res.json({
-        status: "ok",
-        actual_minutes: diff,
-        target_status: "unchanged (not a target day)"
-      });
-    }
-
-    await db.query(
-      `UPDATE target_modules 
-       SET status = 'completed'
-       WHERE target_id = ? AND module_id = ?`,
-      [target_id, module_id]
-    );
-
-    const streak = await updateWeeklyStreak(user_id);
-
     res.json({
       status: "ok",
-      actual_minutes: diff,
-      streak,
-      target_status: "completed"
+      actual_minutes: diff
     });
 
   } catch (err) {

@@ -32,64 +32,38 @@ exports.getModuleOverview = async (req, res) => {
       [module_id]
     );
 
-    // Get module status
-    let moduleStatus = 'not_started';
-    const [targetRows] = await db.query(
-      `SELECT id FROM targets
-       WHERE user_id = ?
-         AND week_start <= CURRENT_DATE
-         AND week_end >= CURRENT_DATE
-       LIMIT 1`,
-      [user_id]
-    );
-
-    if (targetRows.length > 0) {
-      const [statusRows] = await db.query(
-        `SELECT status FROM target_modules
-         WHERE target_id = ? AND module_id = ?`,
-        [targetRows[0].id, module_id]
-      );
-      if (statusRows.length > 0) {
-        moduleStatus = statusRows[0].status;
-      }
-    }
-
     // Get all modules in class with submodules
     const [classModules] = await db.query(
-      `SELECT m.id as module_id, m.name,
-        (
-          SELECT tm.status 
-          FROM target_modules tm
-          JOIN targets t ON t.id = tm.target_id
-          WHERE tm.module_id = m.id AND t.user_id = ?
-          ORDER BY t.week_end DESC, tm.id DESC
-          LIMIT 1
-        ) as status
+      `SELECT m.id as module_id, m.name
        FROM modules m
        WHERE m.class_id = ?
        ORDER BY m.id ASC`,
-      [user_id, module.class_id]
+      [module.class_id]
     );
-    
-    // For each module, get its submodules with completion status
+
+    // For each module, get its submodules with completion status. A module is
+    // 'completed' when every one of its submodules is -- derived here from
+    // submodule_progress instead of a separately-written target_modules.status
+    // column, so the two can never drift out of sync.
     for (const mod of classModules) {
       const [modSubs] = await db.query(
-        `SELECT s.id, s.title, 
+        `SELECT s.id, s.title,
                 COALESCE(sp.status, 'not_started') as completed_status,
                 (sp.status = 'completed') as completed
          FROM submodules s
          LEFT JOIN submodule_progress sp ON s.id = sp.submodule_id AND sp.user_id = ?
-         WHERE s.module_id = ? 
+         WHERE s.module_id = ?
          ORDER BY s.id ASC`,
         [user_id, mod.module_id]
       );
       mod.submodules = modSubs;
-      mod.status = mod.status || 'not_started';
+      mod.status = modSubs.length > 0 && modSubs.every(s => s.completed) ? 'completed' : 'not_started';
     }
 
     const totalModules = classModules.length;
     const completedModules = classModules.filter(m => m.status === 'completed').length;
     const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+    const moduleStatus = classModules.find(m => m.module_id === module_id)?.status || 'not_started';
 
     res.json({
       status: 'ok',
@@ -188,35 +162,28 @@ exports.getSubmoduleContent = async (req, res) => {
 
     // Get all modules in class with their submodules for sidebar
     const [classModules] = await db.query(
-      `SELECT m.id as module_id, m.name,
-        (
-          SELECT tm.status 
-          FROM target_modules tm
-          JOIN targets t ON t.id = tm.target_id
-          WHERE tm.module_id = m.id AND t.user_id = ?
-          ORDER BY t.week_end DESC, tm.id DESC
-          LIMIT 1
-        ) as status
+      `SELECT m.id as module_id, m.name
        FROM modules m
        WHERE m.class_id = ?
        ORDER BY m.id ASC`,
-      [user_id, module.class_id]
+      [module.class_id]
     );
-    
-    // For each module, get its submodules with completion status
+
+    // For each module, get its submodules with completion status, derived from
+    // submodule_progress (see getModuleOverview above for why).
     for (const mod of classModules) {
       const [modSubs] = await db.query(
-        `SELECT s.id, s.title, 
+        `SELECT s.id, s.title,
                 COALESCE(sp.status, 'not_started') as completed_status,
                 (sp.status = 'completed') as completed
          FROM submodules s
          LEFT JOIN submodule_progress sp ON s.id = sp.submodule_id AND sp.user_id = ?
-         WHERE s.module_id = ? 
+         WHERE s.module_id = ?
          ORDER BY s.id ASC`,
         [user_id, mod.module_id]
       );
       mod.submodules = modSubs;
-      mod.status = mod.status || 'not_started';
+      mod.status = modSubs.length > 0 && modSubs.every(s => s.completed) ? 'completed' : 'not_started';
     }
 
     const totalModules = classModules.length;

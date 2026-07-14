@@ -25,7 +25,6 @@ backend/                  Express API (own package.json, own node_modules)
     helpers/                token.js (JWT sign), week.js (week-range/day math), email builders
     cron/                   node-cron jobs (weeklyFeedback, reminder)
     config/                 db.js (pg pool + mysql2-compatible query adapter), mailer.js (nodemailer transport)
-  capstone.sql             legacy MySQL dump, kept for history — no longer the live schema
   supabase_schema.sql      current Postgres schema + seed data (see Database section)
 ```
 
@@ -58,7 +57,6 @@ backend/                  Express API (own package.json, own node_modules)
 
 - Live database is Postgres on Supabase. `supabase_schema.sql` is the source of truth: `CREATE TABLE` (no FKs yet) → seed `INSERT`s → FK `ALTER TABLE ADD CONSTRAINT`s (added after data load so insert order doesn't need to satisfy them) → `setval()` calls to bump each `SERIAL` sequence past the explicit seed ids.
 - MySQL `ENUM` columns became `TEXT` + `CHECK (col IN (...))`. MySQL's `ON UPDATE CURRENT_TIMESTAMP` has no native Postgres equivalent — it's replaced by a shared `set_updated_at()` trigger function attached to every table with an `updated_at` column (see top of the file). If you add a table with `updated_at`, add a matching `CREATE TRIGGER ... EXECUTE FUNCTION set_updated_at()`.
-- `backend/capstone.sql` (the old MySQL/phpMyAdmin dump) is kept only for history — don't edit it, don't treat it as current schema.
 - FK delete behavior is inconsistent across tables (some `ON DELETE CASCADE`, some default `RESTRICT`/no action, `fk_activities_module` cascades module deletion into a user's `activities` history). Check existing FK behavior before adding a new table/relation, and don't assume cascade semantics — verify per table.
 - **Do not commit real user data.** The seed data contains ~50 real emails and display names from actual users (see `users` table). Treat this as sensitive: don't add more real PII to it, and prefer a small synthetic seed set for any new sample data you add. If asked to "reset" or "reseed" the database, use synthetic data unless explicitly told otherwise.
 
@@ -72,4 +70,4 @@ backend/                  Express API (own package.json, own node_modules)
 - This is a small capstone codebase with no test suite — after backend changes, at minimum trace the affected route/controller logic manually (or ask to run the server) rather than assuming correctness from types alone.
 - Match existing patterns (thin route → controller → raw SQL, `api.js` wrapper, try/catch/`console.error`/`status+error` JSON shape) over introducing new abstractions (no ORM, no state library, no new HTTP client) unless explicitly asked.
 - Don't add authentication/password features, rewrite the SQL dump into migrations, or restructure folders speculatively — this is scoped, ask first if a change goes beyond the request.
-- Indonesian-language content in `capstone.sql` (module/submodule text) is real course content — don't translate or alter it as a side effect of unrelated changes.
+- Indonesian-language content in `supabase_schema.sql` (module/submodule text) is real course content — don't translate or alter it as a side effect of unrelated changes.

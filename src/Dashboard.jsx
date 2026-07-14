@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import DailyCheckin from "./pages/DailyCheckin";
-import { getUserProgress, getWeeklyTodo, getStreak, getWeeklyLearningTime, isAuthenticated } from "./api"; // Added isAuthenticated
+import { getUserProgress, getWeeklyTodo, getStreak, getWeeklyLearningTime, getModuleOverview, isAuthenticated } from "./api"; // Added isAuthenticated
 
 import {
   BookOpen,
@@ -35,7 +35,7 @@ function Dashboard({ initialShowLogin }) {
   const [currentPage, setCurrentPage] = useState("academy");
   const [selectedItem, setSelectedItem] = useState("progres");
   const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false);
-  
+
   // State for user progress data
   const [userProgress, setUserProgress] = useState([]);
   const [progressLoading, setProgressLoading] = useState(true);
@@ -219,6 +219,22 @@ function Dashboard({ initialShowLogin }) {
   
   const dailyGoal = calculateDailyGoal();
 
+  // Modul aktif = pilihan user di /choose-module (target_modules minggu ini), bukan auto-pick lagi
+  const currentModule = todoData?.todo?.find(m => m.status !== 'completed') || null;
+
+  const goToCurrentModule = async () => {
+    if (!currentModule) return;
+    try {
+      const response = await getModuleOverview(currentModule.module_id);
+      if (response.status === 'ok' && response.data.submodules.length > 0) {
+        const firstSubmodule = response.data.submodules[0];
+        navigate(`/module/${currentModule.module_id}/submodule/${firstSubmodule.id}`);
+      }
+    } catch (err) {
+      console.error('Error fetching module:', err);
+    }
+  };
+
   const renderSubContent = () => {
     // Guest View: Show login prompt when not authenticated
     if (!authed) {
@@ -296,6 +312,47 @@ function Dashboard({ initialShowLogin }) {
 
             {/* CONTENT: Today schedule & chart */}
             <div className="sub-schedule">
+              {/* CURRENT MODULE WIDGET */}
+              {!todoLoading && currentModule && (
+                <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "12px 16px",
+                      marginBottom: 16,
+                      borderRadius: 12,
+                      background: "#eef2ff",
+                      border: "1px solid #c7d2fe",
+                    }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <span style={{ fontSize: 11, color: "#4f46e5", fontWeight: 600 }}>
+                        SEDANG DIKERJAKAN
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#1e1b4b" }}>
+                        {currentModule.name}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={goToCurrentModule}
+                      style={{
+                        borderRadius: 999,
+                        border: "none",
+                        padding: "8px 14px",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        background: "#4f46e5",
+                        color: "#ffffff",
+                      }}
+                    >
+                      Lanjutkan
+                    </button>
+                  </div>
+              )}
+
               {/* TODAY CARD */}
               <div className="sub-schedule-title">Today&apos;s Schedule</div>
 

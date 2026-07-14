@@ -26,7 +26,7 @@ exports.getWeeklyTodo = async (req, res) => {
     const target_id = targetRows[0].id;
 
     const [modules] = await db.query(
-      `SELECT tm.module_id, tm.status AS plan_status, m.name, m.est_minutes
+      `SELECT tm.module_id, m.name, m.est_minutes
        FROM target_modules tm
        JOIN modules m ON m.id = tm.module_id
        WHERE tm.target_id = ?`,
@@ -40,10 +40,10 @@ exports.getWeeklyTodo = async (req, res) => {
         message: "This week's target has no modules"
       });
     }
-    
+
     // Fetch selected study days
     const [targetDays] = await db.query(
-      `SELECT day_of_week, date
+      `SELECT TO_CHAR(date, 'FMDay') as day_of_week, date
        FROM target_days
        WHERE target_id = ?`,
       [target_id]
@@ -51,7 +51,7 @@ exports.getWeeklyTodo = async (req, res) => {
 
     const [activities] = await db.query(
       `SELECT module_id, status, date_completed
-       FROM activities
+       FROM submodule_time_log
        WHERE user_id = ?
          AND target_id = ?`,
       [user_id, target_id]
@@ -59,21 +59,36 @@ exports.getWeeklyTodo = async (req, res) => {
 
     const activityMap = {};
     for (const a of activities) {
-      activityMap[a.module_id] = { 
-        status: a.status, 
-        date_completed: a.date_completed 
+      activityMap[a.module_id] = {
+        status: a.status,
+        date_completed: a.date_completed
       };
+    }
+
+    // Module completion derived from submodule_progress, not a stored status column
+    const moduleIds = modules.map(mod => mod.module_id);
+    const [completionRows] = await db.query(
+      `SELECT s.module_id,
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE sp.status = 'completed') as done
+       FROM submodules s
+       LEFT JOIN submodule_progress sp ON sp.submodule_id = s.id AND sp.user_id = ?
+       WHERE s.module_id = ANY(?)
+       GROUP BY s.module_id`,
+      [user_id, moduleIds]
+    );
+    const completionMap = {};
+    for (const row of completionRows) {
+      completionMap[row.module_id] = row.total > 0 && row.done === row.total;
     }
 
     const finalTodo = modules.map(mod => {
       let finalStatus = 'not_started';
 
-      if (activityMap[mod.module_id]) {
-        if (activityMap[mod.module_id].status === 'in_progress') {
-          finalStatus = 'in_progress';
-        } else if (mod.plan_status === 'completed' || activityMap[mod.module_id].status === 'completed') {
-          finalStatus = 'completed';
-        }
+      if (activityMap[mod.module_id]?.status === 'in_progress') {
+        finalStatus = 'in_progress';
+      } else if (completionMap[mod.module_id]) {
+        finalStatus = 'completed';
       }
 
       return {

@@ -1,6 +1,8 @@
 const db = require('../config/db');
 const { getWeekRange, convertDayNameToDate } = require('../helpers/week');
 
+const VALID_DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 exports.createWeeklyTarget = async (req, res) => {
   const conn = await db.getConnection();
 
@@ -10,6 +12,10 @@ exports.createWeeklyTarget = async (req, res) => {
 
     if (!Array.isArray(days) || days.length === 0) {
       return res.status(400).json({ error: "Must select at least 1 day" });
+    }
+
+    if (days.some(d => !VALID_DAY_NAMES.includes(d))) {
+      return res.status(400).json({ error: "Invalid day name" });
     }
 
     if (!Array.isArray(modules) || modules.length === 0) {
@@ -43,8 +49,8 @@ exports.createWeeklyTarget = async (req, res) => {
       for (const dayName of days) {
         const date = convertDayNameToDate(dayName, week_start);
         await conn.query(
-          "INSERT INTO target_days (target_id, day_of_week, date) VALUES (?, ?, ?)",
-          [targetId, dayName, date]
+          "INSERT INTO target_days (target_id, date) VALUES (?, ?)",
+          [targetId, date]
         );
       }
 
@@ -90,8 +96,8 @@ exports.createWeeklyTarget = async (req, res) => {
       for (const dayName of days) {
         const date = convertDayNameToDate(dayName, week_start);
         await conn.query(
-          "INSERT INTO target_days (target_id, day_of_week, date) VALUES (?, ?, ?)",
-          [targetId, dayName, date]
+          "INSERT INTO target_days (target_id, date) VALUES (?, ?)",
+          [targetId, date]
         );
       }
 

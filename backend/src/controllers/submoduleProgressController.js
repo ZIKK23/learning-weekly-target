@@ -11,6 +11,23 @@ exports.markSubmoduleComplete = async (req, res) => {
     const { moduleId, submoduleId } = req.params;
     // const { actualMinutes } = req.body; // Deprecated: we use module duration for demo
 
+    // 0. Module harus ada di target_modules minggu aktif user (sudah di-enroll & dipilih jadi target)
+    const [enrollCheck] = await db.query(
+      `SELECT tm.id FROM target_modules tm
+       JOIN targets t ON t.id = tm.target_id
+       WHERE t.user_id = ? AND tm.module_id = ?
+         AND t.week_start <= CURRENT_DATE AND t.week_end >= CURRENT_DATE
+       LIMIT 1`,
+      [user_id, moduleId]
+    );
+
+    if (enrollCheck.length === 0) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Modul ini belum dipilih di jadwal minggu ini. Pilih modul dulu lewat Manage Schedule / Choose Module.'
+      });
+    }
+
     // 1. Mark this submodule as completed
     await db.query(
       `INSERT INTO submodule_progress (user_id, submodule_id, status, completed_at)
@@ -57,9 +74,9 @@ exports.markSubmoduleComplete = async (req, res) => {
 
     // Insert proportional time for THIS submodule completion
     await db.query(
-      `INSERT INTO activities (user_id, module_id, target_id, date_started, date_completed, actual_minutes, status, created_at)
-       VALUES (?, ?, ?, NOW() - (INTERVAL '1 minute' * ?), NOW(), ?, 'completed', NOW())`,
-      [user_id, moduleId, targetId, proportionalTime, proportionalTime]
+      `INSERT INTO submodule_time_log (user_id, module_id, submodule_id, target_id, date_started, date_completed, actual_minutes, status, created_at)
+       VALUES (?, ?, ?, ?, NOW() - (INTERVAL '1 minute' * ?), NOW(), ?, 'completed', NOW())`,
+      [user_id, moduleId, submoduleId, targetId, proportionalTime, proportionalTime]
     );
     console.log(`⏱️ Recorded ${proportionalTime} mins for completing submodule ${submoduleId} of module ${moduleId}`);
 
@@ -92,31 +109,9 @@ exports.markSubmoduleComplete = async (req, res) => {
 
       console.log(`📅 Daily checkin result:`, checkinResult);
 
-      // Update target_modules status to 'completed' for this module
-      // Find the current week's target and update the module status
-      const [targetRows] = await db.query(
-        `SELECT t.id FROM targets t
-         WHERE t.user_id = ?
-           AND t.week_start <= CURRENT_DATE
-           AND t.week_end >= CURRENT_DATE
-         LIMIT 1`,
-        [user_id]
-      );
-
-      if (targetRows.length > 0) {
-        const targetId = targetRows[0].id;
-        
-        const [updateResult] = await db.query(
-          `UPDATE target_modules
-           SET status = 'completed', updated_at = NOW()
-           WHERE target_id = ? AND module_id = ?`,
-          [targetId, moduleId]
-        );
-        
-        console.log(`📊 Updated target_modules: target_id=${targetId}, module_id=${moduleId}`, updateResult);
-      } else {
-        console.log(`⚠️ No active target found for user ${user_id} this week`);
-      }
+      // Module completion is derived from submodule_progress at read time (see
+      // moduleContentController/progressController/etc) -- no separate status
+      // column to keep in sync here anymore.
 
       // Update weekly streak
       console.log(`🔥 Calling updateWeeklyStreak for user ${user_id}...`);
