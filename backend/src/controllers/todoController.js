@@ -49,11 +49,15 @@ exports.getWeeklyTodo = async (req, res) => {
       [target_id]
     );
 
+    // Multiple rows can exist per module now (one per submodule completion) --
+    // order oldest-to-newest so the map-building loop below always ends up
+    // keeping the latest row, instead of an unordered/arbitrary one.
     const [activities] = await db.query(
       `SELECT module_id, status, date_completed
        FROM submodule_time_log
        WHERE user_id = ?
-         AND target_id = ?`,
+         AND target_id = ?
+       ORDER BY date_completed ASC NULLS FIRST, id ASC`,
       [user_id, target_id]
     );
 
@@ -85,10 +89,15 @@ exports.getWeeklyTodo = async (req, res) => {
     const finalTodo = modules.map(mod => {
       let finalStatus = 'not_started';
 
-      if (activityMap[mod.module_id]?.status === 'in_progress') {
-        finalStatus = 'in_progress';
-      } else if (completionMap[mod.module_id]) {
+      // completionMap (derived from submodule_progress) is the authoritative
+      // signal and must win -- a stale 'in_progress' row can be left behind in
+      // submodule_time_log by activitiesController's dead-from-the-UI /start
+      // endpoint even after the module was actually finished via submodule
+      // completion.
+      if (completionMap[mod.module_id]) {
         finalStatus = 'completed';
+      } else if (activityMap[mod.module_id]?.status === 'in_progress') {
+        finalStatus = 'in_progress';
       }
 
       return {

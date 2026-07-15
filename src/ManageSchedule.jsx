@@ -56,6 +56,7 @@ function ManageSchedule({ isOpen, onClose }) {
   const [availableClasses, setAvailableClasses] = useState([]);
   const [modulesLoading, setModulesLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [targetLoaded, setTargetLoaded] = useState(false);
   
   // Alert state
   const [alertConfig, setAlertConfig] = useState({ isOpen: false, message: '', type: 'info' });
@@ -68,12 +69,14 @@ function ManageSchedule({ isOpen, onClose }) {
     setAlertConfig({ isOpen: false, message: '', type: 'info' });
   };
 
-  // Fetch available modules when module modal opens
+  // Fetch available modules when module modal opens. Gated on targetLoaded so
+  // the enrolledIds filter below never runs against a stale/empty selectedModules
+  // (fetchExistingTarget is what populates it, and it's async).
   useEffect(() => {
-    if (showModuleModal && availableClasses.length === 0) {
+    if (showModuleModal && targetLoaded && availableClasses.length === 0) {
       fetchModules();
     }
-  }, [showModuleModal]);
+  }, [showModuleModal, targetLoaded]);
   
   // Fetch existing target to pre-populate toggles
   useEffect(() => {
@@ -83,6 +86,7 @@ function ManageSchedule({ isOpen, onClose }) {
   }, [isOpen]);
   
   const fetchExistingTarget = async () => {
+    setTargetLoaded(false);
     try {
       const token = localStorage.getItem('authToken');  // Fixed: use 'authToken' key
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/todo`, {
@@ -117,6 +121,8 @@ function ManageSchedule({ isOpen, onClose }) {
       }
     } catch (error) {
       console.error('❌ Error fetching existing target:', error);
+    } finally {
+      setTargetLoaded(true);
     }
   };
 
